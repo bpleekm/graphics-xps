@@ -1,0 +1,26 @@
+name: C build and core checks
+
+on: [push, pull_request]
+
+jobs:
+  linux:
+    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        compiler: [gcc, clang]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - run: sudo apt-get update && sudo apt-get install -y build-essential pkg-config ocl-icd-opencl-dev
+      - run: make CC=${{ matrix.compiler }} -j2
+      - run: make CC=${{ matrix.compiler }} check
+      - run: make privacy-check
+      - run: make privacy-history
+  macos-build:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - run: make CC=clang -j2
+      - run: make CC=clang check
+      # Build/core checks only; no claim of GPU runtime or ARM64 validation.
